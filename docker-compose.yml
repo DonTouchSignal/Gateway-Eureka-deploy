@@ -1,0 +1,29 @@
+version: '3.7'
+services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    restart: always
+    networks:
+      - msa-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_REDIS_HOST=${REDIS_HOST:-localhost}
+
+    restart: always
+    networks:
+      - msa-network
+
+networks:
+  msa-network:
+    driver: bridge

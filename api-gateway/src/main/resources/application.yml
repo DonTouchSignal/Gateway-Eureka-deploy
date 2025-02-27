@@ -1,0 +1,126 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+              - X-Auth-User
+              - AccessToken
+              - RefreshToken
+              - Content-Type
+              - Accept
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        # 유저 서비스 (8088)
+        - id: msa-sb-user
+          uri: http://localhost:8088
+          predicates:
+            - Path=/auth/**, /user/**, /api/ads/**, /api/subscription/**
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        # 자산 서비스 (8082)
+        - id: asset-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/asset/**
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        # 커뮤니티 서비스 (8081)
+        - id: msa-sb-community
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/posts/**, 
+                    /api/assets/**, 
+                    /api/users/*/posts/**,
+                    /api/users/*/liked-posts/**
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        # 알림 서비스 (8083)
+        - id: alert-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/alert/**
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        # WebSocket 라우트 (SockJS가 사용하는 모든 엔드포인트 포함)
+        - id: msa-sb-news-ws
+          uri: http://localhost:8086  # ws:// 대신 http:// 사용
+          predicates:
+            - Path=/ws/**,
+                    /ws/info/**,
+                    /ws/connect/**,
+                    /ws/websocket/**,
+                    /ws/*/websocket/**,
+                    /ws/*/info/**,
+                    /ws/*/transport/**
+          filters:
+            - RemoveRequestHeader=Sec-WebSocket-Protocol  # WebSocket 프로토콜 헤더 제거
+            - RemoveRequestHeader=Sec-WebSocket-Extensions
+            - RemoveRequestHeader=Sec-WebSocket-Key
+            - RemoveRequestHeader=Sec-WebSocket-Version
+            - RemoveRequestHeader=Upgrade
+            - RemoveRequestHeader=Connection
+
+        - id: msa-sb-news-sockjs
+          uri: http://localhost:8086  # SockJS fallback을 위한 HTTP 라우트
+          predicates:
+            - Path=/ws/**
+          filters:
+            - RewritePath=/ws/(?<segment>.*), /ws/$\{segment}
+
+        # 기존 HTTP 라우트들...
+        - id: msa-sb-news
+          uri: http://localhost:8086
+          predicates:
+            - Path=/news/**, /chat/**, /api/news/**
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+  main:
+    allow-bean-definition-overriding: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      repositories:
+        enabled: false
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+  instance:
+    lease-renewal-interval-in-seconds: 15
+    lease-expiration-duration-in-seconds: 20
+
+
+
+jwt:
+  token:
+    raw_secret_key: 87334e70ad8edbe57c6a9d8bc472f3e84a5cc7ad3528911fab8d168d88b1fa59
+  expiration: 10
