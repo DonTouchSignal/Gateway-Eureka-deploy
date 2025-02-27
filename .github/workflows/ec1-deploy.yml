@@ -48,59 +48,59 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean build -x test
 
-      # Dockerfile 생성 또는 이미 있는지 확인
-      - name: Dockerfile 확인 및 생성
-        run: |
-          # Eureka 서버 Dockerfile 생성 (없는 경우)
-          if [ ! -f eureka-server/Dockerfile ]; then
-            echo "FROM openjdk:17-jdk-alpine" > eureka-server/Dockerfile
-            echo "WORKDIR /app" >> eureka-server/Dockerfile
-            echo "COPY build/libs/*.jar app.jar" >> eureka-server/Dockerfile
-            echo "EXPOSE 8761" >> eureka-server/Dockerfile
-            echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> eureka-server/Dockerfile
-          fi
-          
-          # API Gateway Dockerfile 생성 (없는 경우)
-          if [ ! -f api-gateway/Dockerfile ]; then
-            echo "FROM openjdk:17-jdk-alpine" > api-gateway/Dockerfile
-            echo "WORKDIR /app" >> api-gateway/Dockerfile
-            echo "COPY build/libs/*.jar app.jar" >> api-gateway/Dockerfile
-            echo "EXPOSE 8080" >> api-gateway/Dockerfile
-            echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> api-gateway/Dockerfile
-          fi
-          
-          # docker-compose.yml 생성 (없는 경우)
-          if [ ! -f docker-compose.yml ]; then
-            cat > docker-compose.yml << 'EOL'
-            version: '3.7'
-            services:
-              eureka-server:
-                build: ./eureka-server
-                container_name: eureka-server
-                ports:
-                  - "8761:8761"
-                restart: always
-                networks:
-                  - msa-network
-          
-              api-gateway:
-                build: ./api-gateway
-                container_name: api-gateway
-                ports:
-                  - "8080:8080"
-                depends_on:
-                  - eureka-server
-                environment:
-                  - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-                restart: always
-                networks:
-                  - msa-network
-          
-            networks:
-              msa-network:
-                driver: bridge
-            EOL
-          fi
+#      # Dockerfile 생성 또는 이미 있는지 확인
+#      - name: Dockerfile 확인 및 생성
+#        run: |
+#          # Eureka 서버 Dockerfile 생성 (없는 경우)
+#          if [ ! -f eureka-server/Dockerfile ]; then
+#            echo "FROM openjdk:17-jdk-alpine" > eureka-server/Dockerfile
+#            echo "WORKDIR /app" >> eureka-server/Dockerfile
+#            echo "COPY build/libs/*.jar app.jar" >> eureka-server/Dockerfile
+#            echo "EXPOSE 8761" >> eureka-server/Dockerfile
+#            echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> eureka-server/Dockerfile
+#          fi
+#
+#          # API Gateway Dockerfile 생성 (없는 경우)
+#          if [ ! -f api-gateway/Dockerfile ]; then
+#            echo "FROM openjdk:17-jdk-alpine" > api-gateway/Dockerfile
+#            echo "WORKDIR /app" >> api-gateway/Dockerfile
+#            echo "COPY build/libs/*.jar app.jar" >> api-gateway/Dockerfile
+#            echo "EXPOSE 8080" >> api-gateway/Dockerfile
+#            echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> api-gateway/Dockerfile
+#          fi
+#
+#          # docker-compose.yml 생성 (없는 경우)
+#          if [ ! -f docker-compose.yml ]; then
+#            cat > docker-compose.yml << 'EOL'
+#            version: '3.7'
+#            services:
+#              eureka-server:
+#                build: ./eureka-server
+#                container_name: eureka-server
+#                ports:
+#                  - "8761:8761"
+#                restart: always
+#                networks:
+#                  - msa-network
+#
+#              api-gateway:
+#                build: ./api-gateway
+#                container_name: api-gateway
+#                ports:
+#                  - "8080:8080"
+#                depends_on:
+#                  - eureka-server
+#                environment:
+#                  - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+#                restart: always
+#                networks:
+#                  - msa-network
+#
+#            networks:
+#              msa-network:
+#                driver: bridge
+#            EOL
+#          fi
 
       # EC2로 파일 업로드
       - name: EC2에 파일 업로드
