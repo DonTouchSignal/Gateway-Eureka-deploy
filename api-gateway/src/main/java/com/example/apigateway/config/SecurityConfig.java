@@ -30,7 +30,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         
         // 구체적인 Origin 설정
-        config.addAllowedOrigin("http://34.222.150.136:3000");
+        config.addAllowedOrigin("http://34.222.150.136");
         
         // 모든 메서드 허용
         config.addAllowedMethod("GET");
@@ -67,7 +67,7 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(source -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.addAllowedOrigin("http://34.222.150.136:3000");
+                    config.addAllowedOrigin("http://34.222.150.136");
                     config.addAllowedMethod("*");
                     config.addAllowedHeader("*");
                     
